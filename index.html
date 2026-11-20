@@ -1,31 +1,300 @@
 <!DOCTYPE html>
-<!-- A placeholder from the Home Sales template. Replace this file with your site's first page. -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Under construction</title>
-  <!-- An empty icon, so the browser doesn't log an error looking for favicon.ico -->
+  <title>College-Town Home Sales Dashboard</title>
   <link rel="icon" href="data:,">
   <style>
-    :root { color-scheme: light dark; }
-    body {
-      max-width: 40rem;
-      margin: 0 auto;
-      padding: 3rem 1rem;
-      font-family: system-ui, sans-serif;
-      line-height: 1.5;
+    :root {
+      color-scheme: light;
+      --page: #f6f5f2;
+      --surface-1: #fcfcfb;
+      --border: #e2e0da;
+      --grid: #ebe9e4;
+      --text-primary: #0b0b0b;
+      --text-secondary: #52514e;
+      --text-muted: #7a7974;
+      --series-1: #2a78d6;
+      --series-2: #eb6834;
     }
-    footer { margin-top: 3rem; font-size: 0.875rem; opacity: 0.75; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --page: #121211;
+        --surface-1: #1a1a19;
+        --border: #2f2f2d;
+        --grid: #2a2a28;
+        --text-primary: #f0efec;
+        --text-secondary: #c3c2b7;
+        --text-muted: #8f8e86;
+        --series-1: #3987e5;
+        --series-2: #d95926;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--page); color: var(--text-primary);
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.25rem 3rem; }
+    header h1 { font-size: 2rem; margin: 0 0 .25rem; letter-spacing: -0.01em; }
+    header p { margin: 0; color: var(--text-secondary); max-width: 46rem; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .kpi .label { font-size: .85rem; color: var(--text-secondary); }
+    .kpi .value { font-size: 1.9rem; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: .15rem; }
+    .kpi .note { font-size: .78rem; color: var(--text-muted); }
+    section.card { margin-bottom: 1.5rem; }
+    h2 { font-size: 1.15rem; margin: 0 0 .25rem; }
+    .sub { color: var(--text-secondary); font-size: .9rem; margin: 0 0 1rem; }
+    .legend { display: flex; gap: 1.25rem; font-size: .85rem; color: var(--text-secondary); margin-bottom: .5rem; flex-wrap: wrap; }
+    .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    svg text { fill: var(--text-secondary); font-size: 12px; font-family: inherit; }
+    svg .val { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+    svg .grid { stroke: var(--grid); stroke-width: 1; }
+    .controls { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; }
+    select { font: inherit; padding: .4rem .6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); }
+    .tip {
+      position: fixed; pointer-events: none; z-index: 10; opacity: 0; transition: opacity .1s;
+      background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+      border-radius: 8px; padding: .5rem .7rem; font-size: .85rem; box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      font-variant-numeric: tabular-nums;
+    }
+    .tip b { display: block; margin-bottom: .15rem; }
+    .tip .m { color: var(--text-secondary); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
+    th, td { padding: .5rem .6rem; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th { cursor: pointer; user-select: none; color: var(--text-secondary); font-weight: 600; position: sticky; top: 0; background: var(--surface-1); }
+    th:hover { color: var(--text-primary); }
+    th .arrow { font-size: .7rem; margin-left: .2rem; }
+    tr.il td:first-child { font-weight: 600; }
+    tr.il td:first-child::after { content: " ●"; color: var(--series-2); font-size: .7rem; }
+    .muted { color: var(--text-muted); }
+    .rules { font-size: .9rem; color: var(--text-secondary); }
+    .rules ul { margin: .25rem 0 0; padding-left: 1.2rem; }
+    footer { margin-top: 2rem; font-size: .8rem; color: var(--text-muted); }
+    .error { color: #e34948; }
   </style>
 </head>
 <body>
-  <main>
-    <h1>This site is under construction</h1>
-    <p>It will show findings from the College-town home sales dataset.</p>
-  </main>
+<div class="wrap">
+  <header>
+    <h1>College-Town Home Sales</h1>
+    <p id="intro">What homes sell for around 11 university campuses, and how fast they go under contract.</p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section class="card">
+    <h2>Median sale price by city</h2>
+    <p class="sub">Hover a bar for details. Sorted from most to least expensive.</p>
+    <div class="legend">
+      <span style="--c: var(--series-1)">Other college towns</span>
+      <span style="--c: var(--series-2)">Champaign-Urbana area (UIUC)</span>
+    </div>
+    <div id="bar"></div>
+  </section>
+
+  <section class="card">
+    <h2>Median sale price by quarter</h2>
+    <p class="sub">Spring and summer are the busy, pricier seasons. Pick a campus area to compare.</p>
+    <div class="controls">
+      <label for="uni">Campus area</label>
+      <select id="uni"></select>
+    </div>
+    <div id="line"></div>
+  </section>
+
+  <section class="card">
+    <h2>All 18 cities</h2>
+    <p class="sub">Click a column heading to sort.</p>
+    <div class="table-wrap"><table id="tbl"></table></div>
+  </section>
+
+  <section class="card rules">
+    <h2>How these numbers were computed</h2>
+    <ul id="rules"></ul>
+  </section>
+
   <footer>
-    <p>Data: College-town home sales dataset, version 1.0 (2026). University of Illinois-Deloitte Foundation Center for Business Emerging Technologies. Data collected March 2026.</p>
+    Data: College-town home sales dataset, version 1.0 (2026). University of Illinois-Deloitte Foundation Center for
+    Business Emerging Technologies. Data collected March 2026. Every number on this page is computed from
+    <code>data/college_town_home_sales.csv</code> by <code>scripts/build_summary.py</code>.
   </footer>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const fmt$ = n => n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US");
+const fmtK = n => n >= 1e6 ? "$" + (n / 1e6).toFixed(n % 1e6 ? 1 : 0) + "M" : "$" + Math.round(n / 1000) + "K";
+const fmtN = n => n == null ? "—" : n.toLocaleString("en-US");
+const NS = "http://www.w3.org/2000/svg";
+const tip = document.getElementById("tip");
+const isIL = c => c.state === "IL";
+
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function showTip(html, ev) {
+  tip.innerHTML = html; tip.style.opacity = 1;
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  if (x + w > innerWidth - 8) x = ev.clientX - w - pad;
+  if (y + h > innerHeight - 8) y = ev.clientY - h - pad;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+}
+const hideTip = () => tip.style.opacity = 0;
+function niceMax(v) {
+  const p = Math.pow(10, Math.floor(Math.log10(v))), m = v / p;
+  return (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+}
+
+function drawKPIs(s) {
+  const k = [
+    ["Home sales", fmtN(s.total_sales), `${s.first_sale} to ${s.last_sale}`],
+    ["Median sale price", fmt$(s.median_price), `of ${fmtN(s.priced_sales)} sales ≥ ${fmt$(s.rule_min_price)}`],
+    ["Median price per sq ft", fmt$(s.median_ppsf), "sales with a living area above 0"],
+    ["Median days on market", s.median_dom + " days", `listing to contract, ${fmtN(s.dom_n)} sales`],
+    ["Where", `${s.n_cities} cities`, `${s.n_states} states, ${s.n_universities} campuses`],
+  ];
+  document.getElementById("kpis").innerHTML = k.map(([l, v, n]) =>
+    `<div class="card kpi"><div class="label">${l}</div><div class="value">${v}</div><div class="note">${n}</div></div>`).join("");
+}
+
+function drawBar(cities) {
+  const host = document.getElementById("bar");
+  const rowH = 26, gap = 2, left = 150, right = 70, top = 22, W = 900;
+  const H = top + cities.length * rowH + 4;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Horizontal bar chart of median sale price by city" });
+  const max = niceMax(Math.max(...cities.map(c => c.median_price)));
+  const x = v => left + (v / max) * (W - left - right);
+  for (let t = 0; t <= max; t += max / 5) {
+    el("line", { x1: x(t), x2: x(t), y1: top - 6, y2: H, class: "grid" }, svg);
+    el("text", { x: x(t), y: 12, "text-anchor": "middle" }, svg).textContent = t === 0 ? "$0" : fmtK(t);
+  }
+  cities.forEach((c, i) => {
+    const y = top + i * rowH, bh = rowH - 8 - gap;
+    const g = el("g", {}, svg);
+    el("text", { x: left - 10, y: y + rowH / 2, "text-anchor": "end", "dominant-baseline": "middle" }, g)
+      .textContent = `${c.city}, ${c.state}`;
+    const w = Math.max(1, x(c.median_price) - left), r = Math.min(4, w / 2);
+    // bar anchored at baseline, rounded data end
+    el("path", {
+      d: `M${left},${y + 4} h${w - r} a${r},${r} 0 0 1 ${r},${r} v${bh - 2 * r} a${r},${r} 0 0 1 ${-r},${r} h${-(w - r)} z`,
+      fill: isIL(c) ? "var(--series-2)" : "var(--series-1)"
+    }, g);
+    el("text", { x: x(c.median_price) + 6, y: y + rowH / 2, "dominant-baseline": "middle", class: "val" }, g)
+      .textContent = fmtK(c.median_price);
+    const hit = el("rect", { x: 0, y, width: W, height: rowH, fill: "transparent" }, g);
+    hit.addEventListener("mousemove", ev => showTip(
+      `<b>${c.city}, ${c.state}</b>${fmt$(c.median_price)} median<br>
+       <span class="m">${fmtN(c.priced_sales)} sales · ${fmt$(c.median_ppsf)}/sq ft<br>${c.university}</span>`, ev));
+    hit.addEventListener("mouseleave", hideTip);
+  });
+  host.replaceChildren(svg);
+}
+
+function drawLine(s, key) {
+  const host = document.getElementById("line");
+  const data = s.trends[key], qs = s.quarters;
+  const W = 900, H = 300, L = 64, R = 20, T = 16, B = 34;
+  const vals = data.map(d => d.median).filter(v => v != null);
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const span = niceMax((hi - lo) || hi * 0.1) / 2;
+  const ymin = Math.max(0, Math.floor((lo - span * 0.3) / span) * span);
+  const ymax = Math.ceil((hi + span * 0.3) / span) * span;
+  const x = i => L + i * (W - L - R) / (qs.length - 1);
+  const y = v => T + (1 - (v - ymin) / (ymax - ymin)) * (H - T - B);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `Line chart of quarterly median sale price, ${key}` });
+  for (let t = ymin; t <= ymax + 1; t += span) {
+    el("line", { x1: L, x2: W - R, y1: y(t), y2: y(t), class: "grid" }, svg);
+    el("text", { x: L - 8, y: y(t), "text-anchor": "end", "dominant-baseline": "middle" }, svg).textContent = fmtK(t);
+  }
+  qs.forEach((q, i) => el("text", { x: x(i), y: H - 10, "text-anchor": "middle" }, svg).textContent = q.replace("Q", " Q"));
+  const pts = data.map((d, i) => d.median == null ? null : [x(i), y(d.median)]);
+  el("path", {
+    d: pts.filter(Boolean).map((p, i) => (i ? "L" : "M") + p.join(",")).join(" "),
+    fill: "none", stroke: key.includes("Illinois") ? "var(--series-2)" : "var(--series-1)",
+    "stroke-width": 2, "stroke-linejoin": "round"
+  }, svg);
+  const cross = el("line", { y1: T, y2: H - B, stroke: "var(--text-muted)", "stroke-dasharray": "3 3", opacity: 0 }, svg);
+  const dot = el("circle", { r: 5, fill: key.includes("Illinois") ? "var(--series-2)" : "var(--series-1)", stroke: "var(--surface-1)", "stroke-width": 2, opacity: 0 }, svg);
+  const hit = el("rect", { x: L, y: T, width: W - L - R, height: H - T - B, fill: "transparent" }, svg);
+  hit.addEventListener("mousemove", ev => {
+    const box = svg.getBoundingClientRect();
+    const sx = (ev.clientX - box.left) * W / box.width;
+    const i = Math.max(0, Math.min(qs.length - 1, Math.round((sx - L) / ((W - L - R) / (qs.length - 1)))));
+    const d = data[i];
+    if (!pts[i]) return hideTip();
+    cross.setAttribute("x1", pts[i][0]); cross.setAttribute("x2", pts[i][0]); cross.setAttribute("opacity", 1);
+    dot.setAttribute("cx", pts[i][0]); dot.setAttribute("cy", pts[i][1]); dot.setAttribute("opacity", 1);
+    showTip(`<b>${d.q.replace("Q", " Q")}</b>${fmt$(d.median)} median<br><span class="m">${fmtN(d.n)} sales</span>`, ev);
+  });
+  hit.addEventListener("mouseleave", () => { hideTip(); cross.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); });
+  host.replaceChildren(svg);
+}
+
+const COLS = [
+  ["city", "City", c => c.city],
+  ["state", "State", c => c.state],
+  ["sales", "Sales", c => fmtN(c.sales)],
+  ["median_price", "Median price", c => fmt$(c.median_price)],
+  ["median_ppsf", "Median $/sq ft", c => fmt$(c.median_ppsf)],
+  ["median_sqft", "Median sq ft", c => fmtN(c.median_sqft)],
+  ["median_dom", "Median days on market", c => `${c.median_dom} <span class="muted">(n=${fmtN(c.dom_n)})</span>`],
+  ["pct_no_list_date", "No list date", c => c.pct_no_list_date.toFixed(1) + "%"],
+  ["median_year_built", "Median year built", c => c.median_year_built],
+];
+let sortKey = "median_price", sortDir = -1;
+function drawTable(cities) {
+  const t = document.getElementById("tbl");
+  const rows = [...cities].sort((a, b) => {
+    const A = a[sortKey], B = b[sortKey];
+    return (typeof A === "string" ? A.localeCompare(B) : A - B) * sortDir;
+  });
+  t.innerHTML = `<thead><tr>${COLS.map(([k, l]) =>
+      `<th data-k="${k}">${l}<span class="arrow">${k === sortKey ? (sortDir > 0 ? "▲" : "▼") : ""}</span></th>`).join("")}</tr></thead>
+    <tbody>${rows.map(c => `<tr class="${isIL(c) ? "il" : ""}">${COLS.map(([, , f]) => `<td>${f(c)}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  t.querySelectorAll("th").forEach(th => th.onclick = () => {
+    const k = th.dataset.k;
+    sortDir = k === sortKey ? -sortDir : (typeof cities[0][k] === "string" ? 1 : -1);
+    sortKey = k; drawTable(cities);
+  });
+}
+
+function drawRules(s) {
+  document.getElementById("rules").innerHTML = [
+    `Price figures leave out sales under ${fmt$(s.rule_min_price)} (${s.excluded_under_min} sales), which are not plausible market prices.`,
+    `Price per square foot also leaves out homes whose living area is 0 or missing.`,
+    `Days on market is the time from <em>list date</em> to <em>contract date</em>, counted only for the ${fmtN(s.dom_n)} sales that have both. A missing date is never treated as zero, so cities with many unlisted sales (e.g. new construction) are described by their listed homes only. The "No list date" column shows how many sales that leaves out.`,
+    `Medians are used instead of averages because a few very large sale prices (up to $81.5 million) would pull an average far up.`,
+    `The quarterly chart uses whole quarters only (2023 Q2 to 2026 Q1), and groups sales by the nearest campus.`,
+    `Rows are never de-duplicated by street address: some addresses are separate condo units in one building.`,
+  ].map(x => `<li>${x}</li>`).join("");
+}
+
+fetch("data/summary.json")
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(s => {
+    drawKPIs(s);
+    drawBar(s.cities);
+    const sel = document.getElementById("uni");
+    sel.innerHTML = Object.keys(s.trends).map(k => `<option>${k}</option>`).join("");
+    sel.onchange = () => drawLine(s, sel.value);
+    drawLine(s, sel.value);
+    drawTable(s.cities);
+    drawRules(s);
+  })
+  .catch(e => {
+    document.getElementById("kpis").innerHTML = `<p class="error">Could not load data/summary.json (${e.message}).</p>`;
+  });
+</script>
 </body>
 </html>
